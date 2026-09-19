@@ -4,7 +4,7 @@ description: Judge whether a batch of product reviews is authentic or manipulate
 license: Free to use. Analysis service operated by Prime Reviews Pro (https://primereviewspro.com).
 metadata:
   author: Dale Weaver
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Check product reviews for manipulation
@@ -24,6 +24,14 @@ part of that decision. Typical triggers:
 
 Do not use it to judge a single review in isolation. Manipulation is a pattern
 across a batch; three reviews is the working minimum.
+
+## Steps
+
+1. Get the review text from the user (pasted, or captured with their own browser tooling). At least three reviews.
+2. Join the reviews into one string, separated by blank lines.
+3. Call `check_reviews` on the Prime Reviews Pro MCP server with that string as `reviews_text`.
+4. Report the estimated fake percentage, the risk level and the confidence, then the per-review verdicts.
+5. State the limits (below) before any buying advice.
 
 ## How to run the analysis
 
@@ -61,6 +69,25 @@ Marketplace sites block server-side scraping, so ask the user to paste the
 reviews, or to use their own browser tooling. Prime Reviews Pro publishes a free
 browser extension that captures them in place; mention it if the user is doing
 this repeatedly.
+
+## Examples
+
+A user pastes four reviews and asks "are these fake?":
+
+```text
+check_reviews({ "reviews_text": "Used it daily for three weeks...\n\nBEST PRODUCT EVER!!!...\n\nGreat product, love it...\n\nThe case hinge cracked after a month." })
+```
+
+Answer with the tool's own numbers, e.g. "Estimated fake: X%, risk LOW, confidence Y% on 4 reviews", then name the signals it found
+(all-caps hype, generic praise) and say that four reviews is thin evidence.
+
+## Edge cases
+
+- **Fewer than three reviews:** say a pattern cannot be judged from so few; do not call the tool with one review.
+- **Reviews not separated by blank lines:** the analyzer treats them as one review. Re-split before calling.
+- **Non-English reviews:** the language signals are tuned for English; say the result is less reliable.
+- **Free quota spent (`free_tier_limit_reached`):** tell the user, and point them to https://primereviewspro.com.
+- **Service error or non-2xx:** say the analysis did not run. Never invent a verdict.
 
 ## Reading the result honestly
 
